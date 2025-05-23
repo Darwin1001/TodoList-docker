@@ -27,13 +27,46 @@ services:
 
   mongodb:
     image: mongo:latest
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
     networks:
       - mongodb_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
 
 networks:
   frontend:
@@ -43,6 +76,10 @@ networks:
   mongodb_network:
     driver: bridge
     attachable: true
+  monitoring:
+    driver: bridge
 
 volumes:
   mongodb_data:
+  prometheus_data:
+  grafana_data:

@@ -4,9 +4,9 @@
     "type": "project",
     "require": {
         "php": "^8.2",
-        "symfony/framework-bundle": "^6.3",
-        "doctrine/mongodb-odm-bundle": "^4.6",
-        "ext-mongodb": "^2.1"
+        "ext-mongodb": "^2.1",
+        "doctrine/mongodb-odm-bundle": "^5.3",
+        "symfony/framework-bundle": "^6.3"
     },
     "config": {
         "optimize-autoloader": true,

@@ -1,83 +1,58 @@
 <?php
 
-namespace App\Controller;
+namespace App\Document;
 
-use App\Document\Todo;
-use Doctrine\ODM\MongoDB\DocumentManager;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 
-#[Route('/api')]
-class TodoController extends AbstractController
+#[MongoDB\Document]
+class Todo
 {
-    private $dm;
+    #[MongoDB\Id]
+    private $id;
 
-    public function __construct(DocumentManager $dm)
+    #[MongoDB\Field(type: 'string')]
+    private $title;
+
+    #[MongoDB\Field(type: 'boolean')]
+    private $completed = false;
+
+    #[MongoDB\Field(type: 'date')]
+    private $createdAt;
+
+    public function __construct()
     {
-        $this->dm = $dm;
+        $this->createdAt = new \DateTime();
     }
 
-    #[Route('/todos', methods: ['GET'])]
-    public function index(): Response
+    public function getId(): ?string
     {
-        $todos = $this->dm->getRepository(Todo::class)->findAll();
-        return $this->json($todos);
+        return $this->id;
     }
 
-    #[Route('/todos', methods: ['POST'])]
-    public function create(Request $request): Response
+    public function getTitle(): ?string
     {
-        $data = json_decode($request->getContent(), true);
-        $todo = new Todo();
-        $todo->setTitle($data['title']);
-        $todo->setCompleted(false);
-        
-        $this->dm->persist($todo);
-        $this->dm->flush();
-
-        return $this->json($todo, Response::HTTP_CREATED);
+        return $this->title;
     }
 
-    #[Route('/todos/{id}', methods: ['GET'])]
-    public function show(string $id): Response
+    public function setTitle(string $title): self
     {
-        $todo = $this->dm->getRepository(Todo::class)->find($id);
-        if (!$todo) {
-            return $this->json(['error' => 'Todo not found'], Response::HTTP_NOT_FOUND);
-        }
-        return $this->json($todo);
+        $this->title = $title;
+        return $this;
     }
 
-    #[Route('/todos/{id}', methods: ['PUT'])]
-    public function update(Request $request, string $id): Response
+    public function isCompleted(): bool
     {
-        $todo = $this->dm->getRepository(Todo::class)->find($id);
-        if (!$todo) {
-            return $this->json(['error' => 'Todo not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $data = json_decode($request->getContent(), true);
-        $todo->setTitle($data['title']);
-        $todo->setCompleted($data['completed']);
-
-        $this->dm->flush();
-
-        return $this->json($todo);
+        return $this->completed;
     }
 
-    #[Route('/todos/{id}', methods: ['DELETE'])]
-    public function delete(string $id): Response
+    public function setCompleted(bool $completed): self
     {
-        $todo = $this->dm->getRepository(Todo::class)->find($id);
-        if (!$todo) {
-            return $this->json(['error' => 'Todo not found'], Response::HTTP_NOT_FOUND);
-        }
+        $this->completed = $completed;
+        return $this;
+    }
 
-        $this->dm->remove($todo);
-        $this->dm->flush();
-
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+    public function getCreatedAt(): ?\DateTime
+    {
+        return $this->createdAt;
     }
 }
