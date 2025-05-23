@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: ../docker/client/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - VITE_HOST=0.0.0.0
+
+  server:
+    build:
+      context: ./server
+      dockerfile: ../docker/server/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server:/var/www/html
+    environment:
+      - APP_ENV=dev
+      - DATABASE_URL=mongodb://mongo:27017/todo
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
