@@ -1,0 +1,32 @@
+FROM php:8.2-fpm-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    zip \
+    unzip \
+    libzip-dev \
+    $PHPIZE_DEPS \
+    openssl-dev
+
+# Install MongoDB extension
+RUN pecl install mongodb-2.1.0 && \
+    docker-php-ext-enable mongodb
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Copy composer files
+COPY composer.* ./
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+
+# Copy application
+COPY . .
+
+EXPOSE 9000
+
+CMD ["php-fpm"]

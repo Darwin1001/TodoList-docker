@@ -1,10 +1,11 @@
-import React from 'react';
+import { FC } from 'react';
 import TodoList from './components/Todo/TodoList';
 import './App.css';
 
-function App() {
+const App: FC = () => {
   return (
     <div className="App">
+      <h1>Ma Todo List</h1>
       <TodoList />
     </div>
   );

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: ../docker/client/Dockerfile.prod
+    ports:
+      - "80:80"
+    networks:
+      - frontend
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: ./server
+      dockerfile: ../docker/server/Dockerfile.prod
+    environment:
+      - APP_ENV=prod
+      - MONGODB_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/${MONGODB_DATABASE}
+    networks:
+      - backend
+      - mongodb_network
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    networks:
+      - mongodb_network
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  mongodb_network:
+    driver: bridge
+    attachable: true
+
+volumes:
+  mongodb_data:
